@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Medical Diagnosis Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0c2461 0%, #1e3799 50%, #4a69bd 100%);
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .chatbot-container {
+            flex: 1;
+            min-width: 400px;
+            height: 700px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .data-container {
+            flex: 1;
+            min-width: 400px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            max-height: 700px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .chat-header {
+            background: linear-gradient(to right, #0c2461, #1e3799);
+            color: white;
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .chat-header h2 {
+            font-weight: 600;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .header-controls {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .header-controls button {
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+        
+        .header-controls button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            line-height: 1.4;
+            animation: fadeIn 0.3s ease;
+            position: relative;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bot-message {
+            align-self: flex-start;
+            background: white;
+            border-bottom-left-radius: 5px;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #4a69bd;
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            background: linear-gradient(to right, #4a69bd, #1e3799);
+            color: white;
+            border-bottom-right-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #eaeaea;
+            gap: 10px;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            outline: none;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .chat-input input:focus {
+            border-color: #4a69bd;
+        }
+        
+        #send-btn {
+            width: 46px;
+            height: 46px;
+            border: none;
+            background: #4a69bd;
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+        
+        #send-btn:hover {
+            background: #1e3799;
+        }
+        
+        .timestamp {
+            font-size: 0.7rem;
+            margin-top: 5px;
+            opacity: 0.7;
+            text-align: right;
+        }
+        
+        .bot-typing {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #777;
+            font-style: italic;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #777;
+            border-radius: 50%;
+            animation: typingAnimation 1.4s infinite;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+        
+        .welcome-message {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .disclaimer {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #856404;
+        }
+        
+        .suggested-questions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        
+        .suggested-question {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 16px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .suggested-question:hover {
+            background: #bbdefb;
+        }
+        
+        .medical-icon {
+            color: #4a69bd;
+        }
+        
+        .option-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .option-button {
+            background: #4a69bd;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .option-button:hover {
+            background: #1e3799;
+        }
+        
+        .patient-data h3 {
+            color: #4a69bd;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .summary-section {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        .data-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .print-btn {
+            background: #4a69bd;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .print-btn:hover {
+            background: #1e3799;
+        }
+        
+        .main-problem {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .section-title {
+            background: #4a69bd;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin: 15px 0 10px 0;
+        }
+        
+        .emergency-alert {
+            background: #ffebee;
+            border: 2px solid #f44336;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+        }
+        
+        .support-message {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .quick-responses {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .quick-response {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 16px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quick-response:hover {
+            background: #bbdefb;
+            transform: translateY(-2px);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #4caf50;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .api-status {
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            margin-left: 10px;
+        }
+        
+        .api-status.connected {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: #27ae60;
+        }
+        
+        .api-status.connecting {
+            background-color: rgba(241, 196, 15, 0.2);
+            color: #f39c12;
+        }
+        
+        .api-status.error {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, #4caf50, #8bc34a);
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #4a69bd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message-bubble {
+            max-width: calc(100% - 50px);
+        }
+
+        .user-message .message-content {
+            flex-direction: row-reverse;
+        }
+
+        .user-message .avatar {
+            background: #1e3799;
+            margin-right: 0;
+            margin-left: 10px;
+        }
+
+        .appointment-message {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .appointment-details {
+            margin-top: 10px;
+            padding: 10px;
+            background: #c8e6c9;
+            border-radius: 6px;
+        }
+
+        .reset-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .reset-btn:hover {
+            background: #d32f2f;
+        }
+        
+        .flow-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .flow-option {
+            padding: 15px;
+            border-radius: 10px;
+            background: #e3f2fd;
+            border: 2px solid #bbdefb;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .flow-option:hover {
+            background: #bbdefb;
+            transform: translateY(-3px);
+        }
+        
+        .flow-option i {
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .emergency-option {
+            background: #ffebee;
+            border-color: #ffcdd2;
+        }
+        
+        .emergency-option:hover {
+            background: #ffcdd2;
+        }
+        
+        .prescription-section {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+            gap: 5px;
+        }
+        
+        .step {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ddd;
+            transition: background 0.3s;
+        }
+        
+        .step.active {
+            background: #4a69bd;
+        }
+        
+        .conversation-step {
+            font-size: 0.8rem;
+            color: #4a69bd;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .message-structure {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .message-point {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .message-point i {
+            color: #4a69bd;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+        
+        /* New styles for patient description section */
+        .patient-description-section {
+            background: #f0f4ff;
+            border-left: 4px solid #4a69bd;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        
+        .patient-description-section h4 {
+            color: #4a69bd;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .patient-description-content {
+            line-height: 1.6;
+            font-size: 0.9rem;
+            font-style: italic;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #4a69bd;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .doctor-portal-btn {
+            background: #4a69bd;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .doctor-portal-btn:hover {
+            background: #1e3799;
+        }
+        
+        .doctor-portal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .doctor-portal-header {
+            background: linear-gradient(to right, #0c2461, #1e3799);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .doctor-portal-content {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(90vh - 100px);
+        }
+        
+        .doctor-portal-close {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .patient-history {
+            margin-bottom: 20px;
+        }
+        
+        .history-item {
+            background: #f8f9fa;
+            border-left: 4px solid #4a69bd;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        .history-date {
+            font-weight: bold;
+            color: #4a69bd;
+            margin-bottom: 5px;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1500;
+            display: none;
+        }
+        .medical-context-section {
+            background: #f0f8ff;
+            border-left: 4px solid #4682b4;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        
+        .medical-context-item {
+            background: white;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 4px;
+            border-left: 3px solid #4682b4;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .comprehensive-description {
+            background: #f0f8ff;
+            border-left: 4px solid #4a69bd;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            line-height: 1.6;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .chatbot-container, .data-container {
+                min-width: 100%;
+            }
+            
+            .flow-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .doctor-portal {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chatbot-container">
+            <div class="chat-header">
+                <h2>
+                    <i class="fas fa-stethoscope medical-icon"></i> 
+                    Advanced Medical Diagnosis Assistant
+                    <span class="api-status connecting" id="api-status">Connecting</span>
+                </h2>
+                <div class="header-controls">
+                    <button id="minimize-btn"><i class="fas fa-minus"></i></button>
+                    <button id="close-btn"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            
+            <div class="step-indicator">
+                <div class="step active" id="step1"></div>
+                <div class="step" id="step2"></div>
+                <div class="step" id="step3"></div>
+                <div class="step" id="step4"></div>
+                <div class="step" id="step5"></div>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <div class="welcome-message">AI-Powered Medical Assistant with Structured Flow</div>
+                <div class="disclaimer">
+                    <strong>Important:</strong> This is not a substitute for professional medical advice. Always consult a healthcare provider for personal medical concerns.
+                </div>
+                <div class="message bot-message">
+                    <div class="message-content">
+                        <div class="avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-bubble">
+                            <div class="conversation-step">Step 1: Basic Information</div>
+                            Welcome! I'm your advanced AI medical assistant. To get started, could you please tell me your age?
+                            <div class="timestamp">Just now</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <input type="text" id="message-input" placeholder="Type your response here...">
+                <button id="send-btn"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+
+        <div class="data-container">
+            <div class="progress-bar">
+                <div class="progress" id="data-progress" style="width: 10%;"></div>
+            </div>
+            <div class="data-header">
+                <h3><i class="fas fa-user-injured medical-icon"></i> Patient Medical Record</h3>
+                <div>
+                    <button class="print-btn" id="print-btn"><i class="fas fa-print"></i> Print</button>
+                    <button class="reset-btn" id="reset-btn"><i class="fas fa-redo"></i> New Session</button>
+                    <button class="doctor-portal-btn" id="doctor-portal-btn"><i class="fas fa-user-md"></i> Doctor Portal</button>
+                </div>
+            </div>
+            <div class="disclaimer">
+                <strong>Note:</strong> This information is stored locally in your browser and is not sent to any server.
+            </div>
+            
+            <div class="main-problem" id="main-problem">
+                Main problem not identified yet
+            </div>
+            
+            <div class="section-title">Patient Information</div>
+            <table id="patient-table">
+                <tr>
+                    <th>Field</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Age</td>
+                    <td id="age-value">Not provided</td>
+                </tr>
+                <tr>
+                    <td>Age Group</td>
+                    <td id="age-group-value">Not determined</td>
+                </tr>
+                <tr>
+                    <td>Patient Type</td>
+                    <td id="patient-type-value">New patient</td>
+                </tr>
+                <tr>
+                    <td>Consultation Date</td>
+                    <td id="date-value"></td>
+                </tr>
+            </table>
+            
+            <div class="section-title">Symptoms & Diagnosis</div>
+            <table id="symptoms-table">
+                <tr>
+                    <th>Symptoms</th>
+                    <th>Status</th>
+                </tr>
+            </table>
+            
+            <div class="section-title">Medical Assessment</div>
+            <table id="assessment-table">
+                <tr>
+                    <th>Assessment</th>
+                    <th>Details</th>
+                </tr>
+            </table>
+            
+            <div class="section-title">Recommendations</div>
+            <table id="recommendations-table">
+                <tr>
+                    <th>Type</th>
+                    <th>Details</th>
+                </tr>
+            </table>
+            
+            <div class="section-title">Comprehensive Medical Description</div>
+            <div class="comprehensive-description" id="comprehensive-description">
+                No comprehensive description available yet. Complete the consultation to generate a detailed medical description.
+            </div>
+            
+            <div class="prescription-section" id="prescription-section" style="display: none;">
+                <h4><i class="fas fa-pills"></i> Suggested Prescription</h4>
+                <div id="prescription-details"></div>
+            </div>
+            
+            <div class="patient-description-section" id="patient-description-section" style="display: none;">
+                <h4><i class="fas fa-file-medical"></i> Consultation Report</h4>
+                <div id="patient-description-content" class="patient-description-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Doctor Portal Modal -->
+    <div class="overlay" id="portal-overlay"></div>
+    <div class="doctor-portal" id="doctor-portal">
+        <div class="doctor-portal-header">
+            <h3><i class="fas fa-user-md"></i> Doctor Portal - Patient Summary</h3>
+            <button class="doctor-portal-close" id="doctor-portal-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="doctor-portal-content" id="doctor-portal-content">
+            <div class="patient-history" id="patient-history">
+                <h4>Patient Description</h4>
+                <div id="patient-description-portal"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">Data saved successfully!</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageInput = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-btn');
+            const minimizeBtn = document.getElementById('minimize-btn');
+            const closeBtn = document.getElementById('close-btn');
+            const printBtn = document.getElementById('print-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const doctorPortalBtn = document.getElementById('doctor-portal-btn');
+            const doctorPortal = document.getElementById('doctor-portal');
+            const doctorPortalClose = document.getElementById('doctor-portal-close');
+            const portalOverlay = document.getElementById('portal-overlay');
+            const mainProblemEl = document.getElementById('main-problem');
+            const notification = document.getElementById('notification');
+            const apiStatus = document.getElementById('api-status');
+            const dataProgress = document.getElementById('data-progress');
+            const prescriptionSection = document.getElementById('prescription-section');
+            const prescriptionDetails = document.getElementById('prescription-details');
+            const appointmentTable = document.getElementById('appointment-table');
+            const patientDescriptionSection = document.getElementById('patient-description-section');
+            const patientDescriptionContent = document.getElementById('patient-description-content');
+            const patientDescriptionPortal = document.getElementById('patient-description-portal');
+            const comprehensiveDescription = document.getElementById('comprehensive-description');
+            
+            // API configuration
+            const API_KEY = "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";
+            const API_URL = "https://openrouter.ai/api/v1/chat/completions";
+            const MODEL = "deepseek/deepseek-chat";
+            // Qdrant Vector Database Configuration
+            const QDRANT_URL = "https://d7912ace-e419-4318-a285-0156d0cc137b.us-east4-0.gcp.cloud.qdrant.io:6333";
+            const QDRANT_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.WFdp_TRSolt6004_-g3nQ34GWcdWrg7pVSkXsAxXv5c";
+            const QDRANT_COLLECTION = "med_ru_sections";
+            
+            // Patient data object
+            let patientData = {
+                age: null,
+                ageGroup: null,
+                patientType: "New patient",
+                complaintType: null,
+                symptoms: [],
+                symptomDetails: [], // Store detailed symptom descriptions
+                suggestedDiagnosis: [],
+                emergency: false,
+                timestamp: new Date().toLocaleString(),
+                mainProblem: "Not identified yet",
+                painSeverity: null,
+                patientDescription: null,
+                comprehensiveDescription: null
+            };
+            
+            // Simulated database for chronic patients
+            const chronicPatientsDB = {
+                "12345": {
+                    id: "12345",
+                    name: "John Smith",
+                    age: 58,
+                    conditions: ["Hypertension", "Type 2 Diabetes"],
+                    medications: ["Lisinopril 10mg daily", "Metformin 500mg twice daily"],
+                    lastVisit: "2023-11-15"
+                },
+                "67890": {
+                    id: "67890",
+                    name: "Sarah Johnson",
+                    age: 42,
+                    conditions: ["Asthma", "Migraines"],
+                    medications: ["Albuterol inhaler as needed", "Sumatriptan 50mg as needed"],
+                    lastVisit: "2023-12-05"
+                }
+            };
+            
+            // Simulated doctor availability
+            const doctorAvailability = {
+                "Cardiologist": ["Dr. Emily Chen", "Dr. Michael Rodriguez"],
+                "Neurologist": ["Dr. James Wilson", "Dr. Lisa Thompson"],
+                "Gastroenterologist": ["Dr. Sarah Johnson", "Dr. Andrew Kim"],
+                "General Practitioner": ["Dr. Robert Brown", "Dr. Jennifer Lee"]
+            };
+            
+            // Conversation state management
+            let conversationState = {
+                step: 'initial',
+                expecting: 'age',
+                dataCollected: 0,
+                isChronicPatient: false,
+                chronicPatientId: null,
+                patientDescriptionGenerated: false,
+                currentQuestions: null,
+                currentQuestionIndex: 0
+            };
+            
+            // Severe symptoms that trigger emergency alerts
+            const severeSymptoms = [
+                'chest pain', 'shortness of breath', 'severe bleeding', 'difficulty breathing',
+                'sudden numbness', 'paralysis', 'severe headache', 'loss of consciousness',
+                'severe burn', 'head injury', 'poisoning', 'suicidal thoughts'
+            ];
+            
+            // Conversation history for context
+            let conversationHistory = [
+                {
+                    role: "system",
+                    content: `You are a medical assistant chatbot following a structured flow. Your role is to:
+                    1. First ask for the user's age and adjust your tone based on it (child-friendly, adult, or elder-appropriate)
+                    2. Ask about the type of complaint (Emergency, Regular complaint, Chronic patient, or Medical certificate)
+                    3. Based on the complaint type, follow the appropriate flow:
+                       - Emergency: Insist on calling emergency services, provide first aid instructions
+                       - Regular: Ask for symptoms, perform triage, suggest 1-3 probable diagnoses
+                       - Chronic: Check if patient is in database, load past medications/diagnoses
+                       - Medical certificate: Handle accordingly
+                    4. Focus only on understanding symptoms and creating a detailed medical report
+                    5. Do NOT suggest booking appointments or recommend specific doctors
+                    6. At the end of the consultation, generate a comprehensive patient description for medical records
+                    Important rules:
+                    - Always be empathetic and professional
+                    - Remind users that you are not a substitute for professional medical advice
+                    - For children and elders, use simpler language and more reassurance
+                    - When asking about symptoms, ask for detailed descriptions of how they feel
+                    - Keep your responses concise (maximum 2-3 sentences)
+                    - Structure your responses with clear points when appropriate
+                    
+                    Current conversation state: ${JSON.stringify(conversationState)}
+                    Patient data: ${JSON.stringify(patientData)}`
+                }
+            ];
+            
+            // Set current date
+            document.getElementById('date-value').textContent = new Date().toLocaleDateString();
+            
+            // Update API status
+            function updateApiStatus(status, text) {
+            apiStatus.className = `api-status ${status}`;
+            apiStatus.textContent = text;
+            
+            // Check Qdrant connection when API is connected
+            if (status === 'connected') {
+                checkQdrantConnection().then(connected => {
+                    if (connected) {
+                        console.log('Qdrant database connection successful');
+                    } else {
+                        console.warn('Qdrant database connection failed');
+                    }
+                });
+            }
+        }
+            // Function to check Qdrant connection
+            async function checkQdrantConnection() {
+                try {
+                    const response = await fetch(`${QDRANT_URL}/collections/${QDRANT_COLLECTION}`, {
+                        headers: {
+                            'api-key': QDRANT_API_KEY
+                        }
+                    });
+                    return response.ok;
+                } catch (error) {
+                    return false;
+                }
+            }
+            
+            // Update progress bar based on data collected
+            function updateProgressBar() {
+                let progress = 10;
+                if (patientData.age) progress += 25;
+                if (patientData.symptoms.length > 0) progress += 40;
+                if (patientData.suggestedDiagnosis.length > 0) progress += 25;
+                
+                dataProgress.style.width = `${progress}%`;
+            }
+            
+            // Update step indicators
+            function updateStepIndicators() {
+                const steps = document.querySelectorAll('.step');
+                steps.forEach((step, index) => {
+                    step.classList.remove('active');
+                });
+                
+                if (conversationState.step === 'initial') {
+                    document.getElementById('step1').classList.add('active');
+                } else if (conversationState.step === 'complaint_type') {
+                    document.getElementById('step1').classList.add('active');
+                    document.getElementById('step2').classList.add('active');
+                } else if (conversationState.step === 'symptoms') {
+                    document.getElementById('step1').classList.add('active');
+                    document.getElementById('step2').classList.add('active');
+                    document.getElementById('step3').classList.add('active');
+                } else if (conversationState.step === 'diagnosis') {
+                    document.getElementById('step1').classList.add('active');
+                    document.getElementById('step2').classList.add('active');
+                    document.getElementById('step3').classList.add('active');
+                    document.getElementById('step4').classList.add('active');
+                } else if (conversationState.step === 'complete') {
+                    document.getElementById('step1').classList.add('active');
+                    document.getElementById('step2').classList.add('active');
+                    document.getElementById('step3').classList.add('active');
+                    document.getElementById('step4').classList.add('active');
+                    document.getElementById('step5').classList.add('active');
+                }
+            }
+            
+            // Show notification
+            function showNotification(message) {
+                notification.textContent = message;
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            // Add message to chat
+            function addMessage(text, isUser = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = isUser ? 'message user-message' : 'message bot-message';
+                
+                const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                const avatar = isUser ? 
+                    `<div class="avatar"><i class="fas fa-user"></i></div>` : 
+                    `<div class="avatar"><i class="fas fa-robot"></i></div>`;
+                
+                const messageContent = isUser ? 
+                    `<div class="message-content">
+                        ${avatar}
+                        <div class="message-bubble">
+                            ${text}
+                            <div class="timestamp">${timestamp}</div>
+                        </div>
+                    </div>` :
+                    `<div class="message-content">
+                        ${avatar}
+                        <div class="message-bubble">
+                            ${text}
+                            <div class="timestamp">${timestamp}</div>
+                        </div>
+                    </div>`;
+                
+                messageDiv.innerHTML = messageContent;
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // Show typing indicator
+            function showTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'message bot-message';
+                typingDiv.id = 'typing-indicator';
+                typingDiv.innerHTML = `
+                    <div class="message-content">
+                        <div class="avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-bubble">
+                            <div class="bot-typing">
+                                <span>AI is typing</span>
+                                <div class="typing-dots">
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                chatMessages.appendChild(typingDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // Hide typing indicator
+            function hideTypingIndicator() {
+                const typingIndicator = document.getElementById('typing-indicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+            
+            // Generate comprehensive medical description
+            function generateComprehensiveDescription() {
+                if (patientData.comprehensiveDescription) return patientData.comprehensiveDescription;
+                
+                const ageGroup = patientData.ageGroup || 'unknown age group';
+                const symptoms = patientData.symptoms.length > 0 ? 
+                    patientData.symptoms.join(', ') : 'no specific symptoms reported';
+                const diagnosis = patientData.suggestedDiagnosis.length > 0 ? 
+                    patientData.suggestedDiagnosis.join(', ') : 'no diagnosis suggested';
+                
+                // Generate a detailed paragraph with comprehensive medical information
+                const description = `
+                    The patient is a ${patientData.age}-year-old individual from the ${ageGroup} demographic who presented with ${symptoms}. 
+                    Upon thorough evaluation, the clinical presentation suggests ${diagnosis}. The symptoms were described in detail, 
+                    including their onset, duration, and any aggravating or relieving factors. The patient's medical history was reviewed, 
+                    and relevant risk factors were assessed. Based on the comprehensive evaluation, appropriate recommendations were provided, 
+                    including self-care measures, monitoring guidelines, and indications for seeking further medical attention. 
+                    The patient was advised to follow up with a healthcare provider for confirmation of the diagnosis and personalized treatment plan. 
+                    This AI-assisted assessment serves as a preliminary evaluation and should not replace professional medical consultation.
+                `;
+                
+                patientData.comprehensiveDescription = description;
+                return description;
+            }
+            
+            // Generate patient description for medical records
+            function generatePatientDescription() {
+                if (patientData.patientDescription) return patientData.patientDescription;
+                
+                const ageGroup = patientData.ageGroup || 'unknown age group';
+                const symptoms = patientData.symptoms.length > 0 ? 
+                    patientData.symptoms.join(', ') : 'no specific symptoms reported';
+                const diagnosis = patientData.suggestedDiagnosis.length > 0 ? 
+                    patientData.suggestedDiagnosis.join(', ') : 'no diagnosis suggested';
+                
+                const description = `
+                    Patient is a ${patientData.age}-year-old ${ageGroup} presenting with ${symptoms}. 
+                    Based on the reported symptoms, possible conditions include ${diagnosis}. 
+                    ${patientData.emergency ? 'EMERGENCY SITUATION: Patient requires immediate medical attention.' : 'No emergency signs detected.'}
+                    ${conversationState.isChronicPatient ? 'This is a chronic patient with existing conditions.' : 'This is a new patient.'}
+                    Consultation conducted on ${patientData.timestamp}. Patient advised to seek professional medical evaluation.
+                `;
+                
+                patientData.patientDescription = description;
+                return description;
+            }
+            
+            // Update patient data table
+            function updatePatientDataTable() {
+                document.getElementById('age-value').textContent = patientData.age || 'Not provided';
+                document.getElementById('age-group-value').textContent = patientData.ageGroup || 'Not determined';
+                document.getElementById('patient-type-value').textContent = patientData.patientType;
+                
+                // Update symptoms table
+                const symptomsTable = document.getElementById('symptoms-table');
+                // Clear existing rows except header
+                while (symptomsTable.rows.length > 1) {
+                    symptomsTable.deleteRow(1);
+                }
+                
+                patientData.symptoms.forEach(symptom => {
+                    const row = symptomsTable.insertRow();
+                    const cell1 = row.insertCell(0);
+                    const cell2 = row.insertCell(1);
+                    cell1.textContent = symptom;
+                    cell2.textContent = 'Reported';
+                });
+                
+                // Update assessment table
+                const assessmentTable = document.getElementById('assessment-table');
+                // Clear existing rows except header
+                while (assessmentTable.rows.length > 1) {
+                    assessmentTable.deleteRow(1);
+                }
+                
+                patientData.suggestedDiagnosis.forEach(diagnosis => {
+                    const row = assessmentTable.insertRow();
+                    const cell1 = row.insertCell(0);
+                    const cell2 = row.insertCell(1);
+                    cell1.textContent = diagnosis;
+                    cell2.textContent = 'Possible';
+                });
+                
+                // Update recommendations table
+                const recommendationsTable = document.getElementById('recommendations-table');
+                // Clear existing rows except header
+                while (recommendationsTable.rows.length > 1) {
+                    recommendationsTable.deleteRow(1);
+                }
+                
+                if (patientData.emergency) {
+                    const row = recommendationsTable.insertRow();
+                    const cell1 = row.insertCell(0);
+                    const cell2 = row.insertCell(1);
+                    cell1.textContent = 'Emergency Care';
+                    cell2.textContent = 'Seek immediate medical attention';
+                }
+                
+                if (patientData.symptoms.length > 0) {
+                    const row = recommendationsTable.insertRow();
+                    const cell1 = row.insertCell(0);
+                    const cell2 = row.insertCell(1);
+                    cell1.textContent = 'Professional Consultation';
+                    cell2.textContent = 'Schedule appointment with healthcare provider';
+                }
+                
+                // Update main problem
+                mainProblemEl.textContent = patientData.mainProblem;
+                
+                // Update comprehensive description
+                if (patientData.symptoms.length > 0) {
+                    comprehensiveDescription.textContent = generateComprehensiveDescription();
+                }
+                
+                // Update patient description section if we have enough data
+                if (patientData.symptoms.length > 0 && !patientData.patientDescriptionGenerated) {
+                    patientDescriptionSection.style.display = 'block';
+                    patientDescriptionContent.textContent = generatePatientDescription();
+                    patientDescriptionPortal.textContent = generatePatientDescription();
+                    patientData.patientDescriptionGenerated = true;
+                }
+                
+                updateProgressBar();
+                updateStepIndicators();
+            }
+            
+            // Send message to AI and get response
+            async function sendMessageToAI(userMessage) {
+                showTypingIndicator();
+                
+                // Add user message to conversation history
+                conversationHistory.push({
+                    role: "user",
+                    content: userMessage
+                });
+                
+                try {
+                    const response = await fetch(API_URL, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${API_KEY}`,
+                            "HTTP-Referer": window.location.origin,
+                            "X-Title": "Medical Diagnosis Assistant"
+                        },
+                        body: JSON.stringify({
+                            model: MODEL,
+                            messages: conversationHistory,
+                            max_tokens: 500,
+                            temperature: 0.7
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`API request failed with status ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    const aiResponse = data.choices[0].message.content;
+                    
+                    // Add AI response to conversation history
+                    conversationHistory.push({
+                        role: "assistant",
+                        content: aiResponse
+                    });
+                    
+                    // Process AI response to extract structured data
+                    processAIResponse(aiResponse);
+                    
+                    hideTypingIndicator();
+                    addMessage(aiResponse, false);
+                    
+                    // Update API status
+                    updateApiStatus('connected', 'AI Connected');
+                    
+                } catch (error) {
+                    console.error("Error calling AI API:", error);
+                    hideTypingIndicator();
+                    
+                    // Fallback response if API fails
+                    const fallbackResponse = generateFallbackResponse(userMessage);
+                    addMessage(fallbackResponse, false);
+                    
+                    updateApiStatus('error', 'AI Offline - Using Fallback');
+                }
+            }
+            
+            // Process AI response to extract structured data
+            function processAIResponse(response) {
+                // Extract age if mentioned
+                const ageMatch = response.match(/(\d+)\s*years?\s*old/);
+                if (ageMatch && !patientData.age) {
+                    patientData.age = parseInt(ageMatch[1]);
+                    determineAgeGroup();
+                }
+                
+                // Check for emergency keywords
+                const emergencyKeywords = ['emergency', 'urgent', '911', 'call ambulance', 'immediate attention'];
+                if (emergencyKeywords.some(keyword => response.toLowerCase().includes(keyword))) {
+                    patientData.emergency = true;
+                }
+                
+                // Extract symptoms (simple keyword matching)
+                const symptomKeywords = [
+                    'fever', 'headache', 'cough', 'pain', 'nausea', 'vomiting', 'dizziness',
+                    'rash', 'shortness of breath', 'chest pain', 'abdominal pain', 'fatigue'
+                ];
+                
+                symptomKeywords.forEach(symptom => {
+                    if (response.toLowerCase().includes(symptom) && !patientData.symptoms.includes(symptom)) {
+                        patientData.symptoms.push(symptom);
+                    }
+                });
+                
+                // Extract possible diagnoses
+                const diagnosisKeywords = [
+                    'flu', 'cold', 'migraine', 'infection', 'allergy', 'asthma', 'hypertension',
+                    'diabetes', 'gastroenteritis', 'sinusitis', 'bronchitis', 'pneumonia'
+                ];
+                
+                diagnosisKeywords.forEach(diagnosis => {
+                    if (response.toLowerCase().includes(diagnosis) && !patientData.suggestedDiagnosis.includes(diagnosis)) {
+                        patientData.suggestedDiagnosis.push(diagnosis);
+                    }
+                });
+                
+                // Update main problem if symptoms are mentioned
+                if (patientData.symptoms.length > 0 && patientData.mainProblem === "Not identified yet") {
+                    patientData.mainProblem = patientData.symptoms.join(', ');
+                }
+                
+                // Update patient data table
+                updatePatientDataTable();
+            }
+            
+            // Generate fallback response when AI is unavailable
+            function generateFallbackResponse(userMessage) {
+                let response = "";
+                
+                if (conversationState.expecting === 'age') {
+                    response = "Thank you. To provide the best assistance, could you please tell me your age?";
+                    conversationState.expecting = 'complaint_type';
+                } else if (conversationState.expecting === 'complaint_type') {
+                    response = "I understand. Is this regarding an emergency situation, a regular health complaint, a chronic condition follow-up, or do you need a medical certificate?";
+                    conversationState.expecting = 'symptoms';
+                } else if (conversationState.expecting === 'symptoms') {
+                    response = "Please describe your symptoms in detail. What are you experiencing, when did it start, and how severe is it?";
+                    conversationState.expecting = 'more_symptoms';
+                } else {
+                    response = "Thank you for that information. Based on what you've described, I recommend monitoring your symptoms and consulting with a healthcare provider for a proper diagnosis. Would you like me to provide more specific self-care recommendations?";
+                }
+                
+                return response;
+            }
+            
+            // Determine age group based on age
+            function determineAgeGroup() {
+                if (patientData.age <= 12) {
+                    patientData.ageGroup = "Child";
+                } else if (patientData.age <= 19) {
+                    patientData.ageGroup = "Adolescent";
+                } else if (patientData.age <= 64) {
+                    patientData.ageGroup = "Adult";
+                } else {
+                    patientData.ageGroup = "Elderly";
+                }
+            }
+            
+            // Handle user message
+            function handleUserMessage() {
+                const message = messageInput.value.trim();
+                if (message === "") return;
+                
+                addMessage(message, true);
+                messageInput.value = "";
+                
+                // Process user message based on conversation state
+                if (conversationState.expecting === 'age') {
+                    // Extract age from message
+                    const ageMatch = message.match(/\d+/);
+                    if (ageMatch) {
+                        patientData.age = parseInt(ageMatch[0]);
+                        determineAgeGroup();
+                        conversationState.expecting = 'complaint_type';
+                        conversationState.step = 'complaint_type';
+                        
+                        // Show options for complaint type
+                        setTimeout(() => {
+                            addMessage(`Thank you. I see you're ${patientData.age} years old. What brings you here today? Please select one of the following options:
+                            <div class="flow-options">
+                                <div class="flow-option emergency-option" data-type="emergency">
+                                    <i class="fas fa-ambulance"></i>
+                                    <div>Emergency Situation</div>
+                                </div>
+                                <div class="flow-option" data-type="regular">
+                                    <i class="fas fa-stethoscope"></i>
+                                    <div>Regular Health Complaint</div>
+                                </div>
+                                <div class="flow-option" data-type="chronic">
+                                    <i class="fas fa-heartbeat"></i>
+                                    <div>Chronic Condition</div>
+                                </div>
+                                <div class="flow-option" data-type="certificate">
+                                    <i class="fas fa-file-medical"></i>
+                                    <div>Medical Certificate</div>
+                                </div>
+                            </div>`, false);
+                            
+                            // Add event listeners to options
+                            document.querySelectorAll('.flow-option').forEach(option => {
+                                option.addEventListener('click', function() {
+                                    const type = this.getAttribute('data-type');
+                                    handleComplaintTypeSelection(type);
+                                });
+                            });
+                        }, 1000);
+                    } else {
+                        setTimeout(() => {
+                            addMessage("I'm sorry, I didn't catch your age. Could you please tell me how old you are?", false);
+                        }, 1000);
+                    }
+                } else {
+                    // Send message to AI for processing
+                    sendMessageToAI(message);
+                }
+                
+                updatePatientDataTable();
+            }
+            
+            // Handle complaint type selection
+            function handleComplaintTypeSelection(type) {
+                let response = "";
+                
+                if (type === 'emergency') {
+                    response = "This sounds serious. Please call emergency services immediately. While waiting for help, can you describe what's happening so I can provide first aid guidance?";
+                    patientData.emergency = true;
+                    patientData.complaintType = "Emergency";
+                } else if (type === 'regular') {
+                    response = "I understand you have a regular health concern. Please describe your symptoms in detail. What are you experiencing and when did it start?";
+                    patientData.complaintType = "Regular Complaint";
+                    conversationState.expecting = 'symptoms';
+                    conversationState.step = 'symptoms';
+                } else if (type === 'chronic') {
+                    response = "I see you're managing a chronic condition. Do you have a patient ID, or would you like to describe your current symptoms?";
+                    patientData.complaintType = "Chronic Condition";
+                    conversationState.expecting = 'chronic_id';
+                } else if (type === 'certificate') {
+                    response = "I can help with medical certificate information. Please describe your condition and the reason you need a certificate.";
+                    patientData.complaintType = "Medical Certificate";
+                    conversationState.expecting = 'certificate_details';
+                }
+                
+                patientData.patientType = type === 'chronic' ? "Chronic patient" : "New patient";
+                
+                addMessage(response, false);
+                updatePatientDataTable();
+            }
+            
+            // Event Listeners
+            sendBtn.addEventListener('click', handleUserMessage);
+            
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleUserMessage();
+                }
+            });
+            
+            minimizeBtn.addEventListener('click', function() {
+                showNotification('Minimize feature would be implemented in a full application');
+            });
+            
+            closeBtn.addEventListener('click', function() {
+                showNotification('Close feature would be implemented in a full application');
+            });
+            
+            printBtn.addEventListener('click', function() {
+                showNotification('Printing medical record...');
+                // In a real application, this would open a print dialog with the patient data
+            });
+            
+            resetBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to start a new session? All current data will be lost.')) {
+                    // Reset patient data
+                    patientData = {
+                        age: null,
+                        ageGroup: null,
+                        patientType: "New patient",
+                        complaintType: null,
+                        symptoms: [],
+                        symptomDetails: [],
+                        suggestedDiagnosis: [],
+                        emergency: false,
+                        timestamp: new Date().toLocaleString(),
+                        mainProblem: "Not identified yet",
+                        painSeverity: null,
+                        patientDescription: null,
+                        comprehensiveDescription: null
+                    };
+                    
+                    // Reset conversation state
+                    conversationState = {
+                        step: 'initial',
+                        expecting: 'age',
+                        dataCollected: 0,
+                        isChronicPatient: false,
+                        chronicPatientId: null,
+                        patientDescriptionGenerated: false,
+                        currentQuestions: null,
+                        currentQuestionIndex: 0
+                    };
+                    
+                    // Clear chat messages except the first bot message
+                    const messages = chatMessages.querySelectorAll('.message');
+                    for (let i = 1; i < messages.length; i++) {
+                        messages[i].remove();
+                    }
+                    
+                    // Reset UI elements
+                    updatePatientDataTable();
+                    updateStepIndicators();
+                    prescriptionSection.style.display = 'none';
+                    patientDescriptionSection.style.display = 'none';
+                    
+                    // Add initial bot message
+                    addMessage("Welcome! I'm your advanced AI medical assistant. To get started, could you please tell me your age?", false);
+                    
+                    showNotification('New session started');
+                }
+            });
+            
+            doctorPortalBtn.addEventListener('click', function() {
+                doctorPortal.style.display = 'flex';
+                portalOverlay.style.display = 'block';
+            });
+            
+            doctorPortalClose.addEventListener('click', function() {
+                doctorPortal.style.display = 'none';
+                portalOverlay.style.display = 'none';
+            });
+            
+            portalOverlay.addEventListener('click', function() {
+                doctorPortal.style.display = 'none';
+                portalOverlay.style.display = 'none';
+            });
+            
+            // Initialize API status
+            updateApiStatus('connecting', 'Connecting to AI...');
+            
+            // Simulate API connection after a delay
+            setTimeout(() => {
+                updateApiStatus('connected', 'AI Connected');
+            }, 2000);
+            
+            // Add initial bot message with options after a short delay
+            setTimeout(() => {
+                addMessage(`Welcome! I'm your advanced AI medical assistant. To get started, could you please tell me your age?`, false);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
